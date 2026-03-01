@@ -1,9 +1,10 @@
-// Import dependencies
+// Imports & setup
 const express = require("express");
-
-// App Setup
 const app = express();
 const PORT = 3000;
+
+app.use(express.json());
+
 
 // In-memory data (temporary database)
 const users = [
@@ -53,6 +54,55 @@ app.get("/users/:id", (req,res) => {
     res.json(user);
 
 });
+
+app.post("/users", (req,res) => {
+    const {name, role} = req.body;
+
+    if (!name || !role) {
+        return res.status(404).json({ error: "name and role are required"});
+    }
+
+    const newUser = {
+        id: users.length + 1,
+        name, 
+        role,
+    };
+
+    users.push(newUser);
+    res.status(201).json(newUser);
+});
+
+app.put("/users/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const { name, role } = req.body;
+
+  const user = users.find(u => u.id === id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (!name && !role) {
+    return res.status(400).json({ error: "Nothing to update" });
+  }
+
+  if (name) user.name = name;
+  if (role) user.role = role;
+
+  res.json(user);
+});
+
+app.delete("/users/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const index = users.findIndex(u => u.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const deletedUser = users.splice(index, 1);
+  res.json(deletedUser[0]);
+});
+
 app.listen(PORT, () => {
     console.log(`server running at http://localhost: ${PORT}`);
 }); 
